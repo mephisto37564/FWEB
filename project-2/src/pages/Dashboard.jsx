@@ -65,22 +65,6 @@ const Dashboard = () => {
       <UserDashboard />
     </PageWrapper>
   );
-
-  // Admin Dashboard
-  if (isAdmin) {
-    return (
-      <PageWrapper>
-        <AdminDashboard />
-      </PageWrapper>
-    );
-  }
-
-  // User Dashboard
-  return (
-    <PageWrapper>
-      <UserDashboard />
-    </PageWrapper>
-  );
 };
 
 export default Dashboard;
