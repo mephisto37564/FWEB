@@ -2,6 +2,8 @@ import { Card, Row, Col } from "react-bootstrap";
 import { useNavigate } from "react-router";
 import { useEffect, useState } from "react";
 import PageWrapper from "../components/PageWrapper";
+import UserDashboard from "../components/UserDashboard";
+import AdminDashboard from "../components/AdminDashboard";
 import API_URL from "../config";
 
 const Dashboard = () => {
@@ -48,67 +50,11 @@ const Dashboard = () => {
     }
   }, [userId, isAdmin]);
 
-  // Admin Dashboard
+  // Route to new comprehensive dashboards
   if (isAdmin) {
     return (
       <PageWrapper>
-        <h2>Welcome back{username ? `, ${username}` : ""}!</h2>
-        <p className="text-muted">Admin Dashboard - Here's your overview:</p>
-
-        <Row className="mt-4 g-4">
-          {/* Total Listings */}
-          <Col lg={4} md={6}>
-            <Card
-              className="h-100"
-              onClick={() => navigate("/listings")}
-              style={{ cursor: "pointer" }}
-            >
-              <Card.Body>
-                <Card.Title>
-                  {listingCount} Job Listings
-                </Card.Title>
-                <Card.Text>
-                  Posted internship opportunities.
-                </Card.Text>
-              </Card.Body>
-            </Card>
-          </Col>
-
-          {/* Total Applications */}
-          <Col lg={4} md={6}>
-            <Card
-              className="h-100"
-              style={{ cursor: "default" }}
-            >
-              <Card.Body>
-                <Card.Title>
-                  {applicationCount} Applications
-                </Card.Title>
-                <Card.Text>
-                  Total student submissions received.
-                </Card.Text>
-              </Card.Body>
-            </Card>
-          </Col>
-
-          {/* Add New Listing */}
-          <Col lg={4} md={6}>
-            <Card
-              className="h-100"
-              onClick={() => navigate("/listings/add")}
-              style={{ cursor: "pointer" }}
-            >
-              <Card.Body>
-                <Card.Title>
-                  Create New Listing
-                </Card.Title>
-                <Card.Text>
-                  Post a new internship opportunity.
-                </Card.Text>
-              </Card.Body>
-            </Card>
-          </Col>
-        </Row>
+        <AdminDashboard />
       </PageWrapper>
     );
   }
@@ -116,46 +62,23 @@ const Dashboard = () => {
   // User Dashboard
   return (
     <PageWrapper>
-      <h2>Welcome back{username ? `, ${username}` : ""}!</h2>
-      <p className="text-muted">Here's your quick overview:</p>
+      <UserDashboard />
+    </PageWrapper>
+  );
 
-      <Row className="mt-4 g-4">
-        {/* Listings */}
-        <Col lg={4} md={6}>
-          <Card
-            className="h-100"
-            onClick={() => navigate("/listings")}
-            style={{ cursor: "pointer" }}
-          >
-            <Card.Body>
-              <Card.Title>
-                {listingCount} Available Listings
-              </Card.Title>
-              <Card.Text>
-                Fresh opportunities waiting for you.
-              </Card.Text>
-            </Card.Body>
-          </Card>
-        </Col>
+  // Admin Dashboard
+  if (isAdmin) {
+    return (
+      <PageWrapper>
+        <AdminDashboard />
+      </PageWrapper>
+    );
+  }
 
-        {/* Active Applications */}
-        <Col lg={4} md={6}>
-          <Card
-            className="h-100"
-            onClick={() => navigate("/applications")}
-            style={{ cursor: "pointer" }}
-          >
-            <Card.Body>
-              <Card.Title>
-                {userApplicationCount} Active Applications
-              </Card.Title>
-              <Card.Text>
-                Your ongoing internship submissions.
-              </Card.Text>
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
+  // User Dashboard
+  return (
+    <PageWrapper>
+      <UserDashboard />
     </PageWrapper>
   );
 };

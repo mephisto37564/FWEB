@@ -9,6 +9,7 @@ import swaggerJsdoc from "swagger-jsdoc";
 import listingsRouter from "./routes/listings.js";
 import applicationsRouter from "./routes/applications.js";
 import usersRouter from "./routes/users.js";
+import dashboardRouter from "./routes/dashboard.js";
 
 // Load environment variables from .env
 dotenv.config();
@@ -48,6 +49,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use("/listings", listingsRouter);
 app.use("/applications", applicationsRouter);
 app.use("/users", usersRouter);
+app.use("/dashboard", dashboardRouter);
 
 // Initial route to test if your backend server is running properly
 app.get("/", async (req, res) => {
