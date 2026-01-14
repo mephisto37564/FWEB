@@ -1,5 +1,8 @@
 {
   "buildCommand": "cd project-2 && npm run build",
-  "installCommand": "cd project-2 && npm install",
-  "outputDirectory": "project-2/dist"
+  "installCommand": "npm install && cd project-2 && npm install && cd ../backend && npm install",
+  "outputDirectory": "project-2/dist",
+  "env": {
+    "VITE_API_URL": "@vite_api_url"
+  }
 }
