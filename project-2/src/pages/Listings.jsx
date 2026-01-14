@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import DataTable from "../components/DataTable";
 import DetailModal from "../components/DetailModal";
+import API_URL from "../config";
 
 export default function Listings() {
   const [listings, setListings] = useState([]);
@@ -29,7 +30,7 @@ export default function Listings() {
 
   const fetchListings = async () => {
     try {
-      const res = await fetch("http://localhost:3000/listings");
+      const res = await fetch(`${API_URL}/listings`);
       const data = await res.json();
       setListings(data);
     } catch (error) {
@@ -39,7 +40,7 @@ export default function Listings() {
 
   const fetchUserApplications = async () => {
     try {
-      const res = await fetch("http://localhost:3000/applications");
+      const res = await fetch(`${API_URL}/applications`);
       const data = await res.json();
       
       // Get titles of jobs user has already applied for
@@ -59,7 +60,7 @@ export default function Listings() {
   const apply = async (item) => {
     try {
       // Create an application
-      const appResponse = await fetch("http://localhost:3000/applications", {
+      const appResponse = await fetch(`${API_URL}/applications`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -91,7 +92,7 @@ export default function Listings() {
   const deleteListing = async (item) => {
     if (window.confirm("Are you sure you want to delete this listing?")) {
       try {
-        await fetch(`http://localhost:3000/listings/${item._id}`, {
+        await fetch(`${API_URL}/listings/${item._id}`, {
           method: "DELETE"
         });
         setListings(prev => prev.filter(l => l._id !== item._id));

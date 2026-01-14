@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import DataTable from "../components/DataTable";
 import DetailModal from "../components/DetailModal";
+import API_URL from "../config";
 
 export default function Applications() {
   const [apps, setApps] = useState([]);
@@ -31,7 +32,7 @@ export default function Applications() {
 
   const fetchApplications = async () => {
     try {
-      const res = await fetch("http://localhost:3000/applications");
+      const res = await fetch(`${API_URL}/applications`);
       const data = await res.json();
       console.log("All applications from server:", data);
       console.log("Filtering for userId:", userId);
@@ -56,7 +57,7 @@ export default function Applications() {
     if (window.confirm("Are you sure you want to unapply?")) {
       try {
         // Delete the application
-        await fetch(`http://localhost:3000/applications/${item._id}`, {
+        await fetch(`${API_URL}/applications/${item._id}`, {
           method: "DELETE"
         });
 

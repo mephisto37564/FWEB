@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from "react-router";
 import { useEffect, useState } from "react";
 import ListingForm from "../components/ListingForm";
+import API_URL from "../config";
 
 export default function EditListing() {
   const { id } = useParams(); // undefined for ADD
@@ -13,7 +14,7 @@ export default function EditListing() {
   useEffect(() => {
     if (!id) return;
 
-    fetch(`http://localhost:3000/listings/${id}`)
+    fetch(`${API_URL}/listings/${id}`)
       .then(res => {
         if (!res.ok) throw new Error("Failed to fetch listing");
         return res.json();
@@ -33,7 +34,7 @@ export default function EditListing() {
     try {
       if (id) {
         // EDIT
-        const response = await fetch(`http://localhost:3000/listings/${id}`, {
+        const response = await fetch(`${API_URL}/listings/${id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(data)
@@ -43,7 +44,7 @@ export default function EditListing() {
         alert("Listing updated successfully!");
       } else {
         // ADD
-        const response = await fetch("http://localhost:3000/listings", {
+        const response = await fetch(`${API_URL}/listings`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(data)
