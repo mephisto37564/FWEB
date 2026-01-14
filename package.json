@@ -1,0 +1,9 @@
+{
+  "name": "internship-portal",
+  "version": "1.0.0",
+  "description": "Internship Portal - MERN Stack",
+  "engines": {
+    "node": "20.x",
+    "npm": "10.x"
+  }
+}
