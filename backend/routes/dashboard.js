@@ -27,16 +27,23 @@ router.get("/user/:userId", async (req, res) => {
   try {
     const { userId } = req.params;
 
+    // Validate if userId is a valid MongoDB ObjectId
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ error: "Invalid user ID format" });
+    }
+
+    const objectId = new mongoose.Types.ObjectId(userId);
+
     // 1. Total applications for this user
     const totalApplications = await Applications.countDocuments({
-      userId: userId,
+      userId: objectId,
     });
 
     // 2. Applications by company
     const applicationsByCompany = await Applications.aggregate([
       {
         $match: {
-          userId: { $eq: new mongoose.Types.ObjectId(userId) },
+          userId: objectId,
         },
       },
       {
@@ -54,7 +61,7 @@ router.get("/user/:userId", async (req, res) => {
     const timelineData = await Applications.aggregate([
       {
         $match: {
-          userId: { $eq: new mongoose.Types.ObjectId(userId) },
+          userId: objectId,
         },
       },
       {
@@ -85,7 +92,7 @@ router.get("/user/:userId", async (req, res) => {
     ]);
 
     // 4. Recent applications (last 5)
-    const recentApplications = await Applications.find({ userId: userId })
+    const recentApplications = await Applications.find({ userId: objectId })
       .sort({ createdAt: -1 })
       .limit(5);
 
@@ -103,7 +110,7 @@ router.get("/user/:userId", async (req, res) => {
     });
   } catch (error) {
     console.error("Error fetching user dashboard data:", error);
-    res.status(500).json({ error: "Failed to fetch dashboard data" });
+    res.status(500).json({ error: "Failed to fetch dashboard data", details: error.message });
   }
 });
 
@@ -224,7 +231,7 @@ router.get("/admin", async (req, res) => {
     });
   } catch (error) {
     console.error("Error fetching admin dashboard data:", error);
-    res.status(500).json({ error: "Failed to fetch dashboard data" });
+    res.status(500).json({ error: "Failed to fetch dashboard data", details: error.message });
   }
 });
 
