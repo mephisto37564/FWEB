@@ -1,10 +1,14 @@
 import { useEffect, useState } from "react";
-import { Card, Button, Form, Row, Col } from "react-bootstrap";
+import { User, Mail, FileText, Save, Upload, LogOut } from "lucide-react";
 import API_URL from "../config";
+import "../styles/Profile.css";
 
 const Profile = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [resumeFile, setResumeFile] = useState(null);
+  const [previewResume, setPreviewResume] = useState(null);
 
   const userId = localStorage.getItem("userId");
 
@@ -18,6 +22,7 @@ const Profile = () => {
       .then(res => res.json())
       .then(data => {
         setUser(data);
+        setPreviewResume(data.resume);
         setLoading(false);
       })
       .catch(err => {
@@ -26,86 +31,204 @@ const Profile = () => {
       });
   }, [userId]);
 
-  const save = async () => {
-    await fetch(`${API_URL}/users/${userId}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(user)
-    });
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
 
-    alert("Profile updated");
+    // Validate file type
+    const validTypes = ['.pdf', '.doc', '.docx'];
+    const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
+    
+    if (!validTypes.includes(fileExtension)) {
+      alert("❌ Please upload a valid resume file (PDF, DOC, DOCX)");
+      return;
+    }
+
+    setResumeFile(file);
+    setPreviewResume(file.name);
   };
 
-  if (loading) return <p>Loading...</p>;
-  if (!user) return <p>User not found</p>;
+  const save = async () => {
+    if (!user) return;
+
+    setSaving(true);
+    try {
+      const formData = new FormData();
+      formData.append('name', user.name);
+      formData.append('email', user.email);
+      
+      if (resumeFile) {
+        formData.append('resume', resumeFile);
+      } else if (previewResume) {
+        formData.append('resume', previewResume);
+      }
+
+      const response = await fetch(`${API_URL}/users/${userId}`, {
+        method: "PUT",
+        body: formData
+      });
+
+      if (!response.ok) throw new Error("Failed to update profile");
+
+      const updatedUser = await response.json();
+      setUser(updatedUser);
+      setResumeFile(null);
+      alert("✅ Profile updated successfully!");
+    } catch (error) {
+      console.error(error);
+      alert("❌ Error updating profile: " + error.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleLogout = () => {
+    if (window.confirm("Are you sure you want to logout?")) {
+      localStorage.removeItem("userId");
+      localStorage.removeItem("role");
+      window.location.href = "/";
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="profile-loading">
+        <div className="spinner"></div>
+        <p>Loading profile...</p>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="profile-error">
+        <p>User not found</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="container-xl mt-4">
-      <h2>Your Profile</h2>
+    <div className="profile-container">
+      {/* Header */}
+      <div className="profile-header">
+        <div>
+          <h1>Your Profile</h1>
+          <p className="profile-subtitle">Manage your account information and resume</p>
+        </div>
+        <button className="btn btn-danger" onClick={handleLogout}>
+          <LogOut className="w-4 h-4" />
+          Logout
+        </button>
+      </div>
 
-      <Card className="mt-4">
-        <Card.Body>
-          <Row className="g-4">
-            <Col md={4}>
-              <img
-                src="https://via.placeholder.com/150"
-                className="img-fluid rounded"
-                alt="Profile"
+      {/* Main Content */}
+      <div className="profile-content">
+        {/* Avatar Card */}
+        <div className="profile-avatar-card">
+          <div className="avatar-container">
+            <div className="avatar">
+              <User className="w-12 h-12" />
+            </div>
+            <div className="avatar-info">
+              <h2>{user.name || "User"}</h2>
+              <p>{user.email}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Form Card */}
+        <div className="profile-form-card">
+          <div className="form-section">
+            <h3 className="section-title">Account Information</h3>
+
+            {/* Full Name Field */}
+            <div className="form-group">
+              <label className="form-label">
+                <User className="w-4 h-4" />
+                Full Name
+              </label>
+              <input
+                type="text"
+                value={user.name || ""}
+                onChange={e => setUser({ ...user, name: e.target.value })}
+                className="form-input"
+                placeholder="Enter your full name"
               />
-            </Col>
+            </div>
 
-            <Col md={8}>
-              <Form>
-                <Form.Group className="mb-3">
-                  <Form.Label>Full Name</Form.Label>
-                  <Form.Control
-                    value={user.name || ""}
-                    onChange={e =>
-                      setUser({ ...user, name: e.target.value })
-                    }
-                  />
-                </Form.Group>
+            {/* Email Field */}
+            <div className="form-group">
+              <label className="form-label">
+                <Mail className="w-4 h-4" />
+                Email Address
+              </label>
+              <input
+                type="email"
+                value={user.email || ""}
+                onChange={e => setUser({ ...user, email: e.target.value })}
+                className="form-input"
+                placeholder="Enter your email"
+              />
+            </div>
+          </div>
 
-                <Form.Group className="mb-3">
-                  <Form.Label>Email</Form.Label>
-                  <Form.Control
-                    value={user.email || ""}
-                    onChange={e =>
-                      setUser({ ...user, email: e.target.value })
-                    }
-                  />
-                </Form.Group>
+          {/* Resume Section */}
+          <div className="form-section">
+            <h3 className="section-title">Resume</h3>
 
-                <Form.Group className="mb-3">
-                  <Form.Label>Resume</Form.Label>
+            <div className="resume-upload">
+              <div className="upload-area">
+                <input
+                  type="file"
+                  id="resume-input"
+                  accept=".pdf,.doc,.docx"
+                  onChange={handleFileChange}
+                  className="file-input"
+                />
+                <label htmlFor="resume-input" className="upload-label">
+                  <Upload className="w-8 h-8" />
+                  <span className="upload-text">
+                    Drag and drop your resume or click to browse
+                  </span>
+                  <span className="upload-hint">PDF, DOC, or DOCX (Max 5MB)</span>
+                </label>
+              </div>
 
-                  <Form.Control
-                    type="file"
-                    accept=".pdf,.doc,.docx"
-                    onChange={(e) => {
-                      const file = e.target.files[0];
-                      if (!file) return;
-
-                      setUser({
-                        ...user,
-                        resume: file.name
-                      });
+              {previewResume && (
+                <div className="resume-preview">
+                  <FileText className="w-5 h-5" />
+                  <div className="resume-info">
+                    <p className="resume-name">{previewResume}</p>
+                    <p className="resume-type">Document ready to upload</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setResumeFile(null);
+                      setPreviewResume(null);
                     }}
-                  />
+                    className="btn-remove"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
 
-                  {user.resume && (
-                    <Form.Text className="text-muted">
-                      Uploaded: {user.resume}
-                    </Form.Text>
-                  )}
-                </Form.Group>
-
-                <Button onClick={save}>Save Changes</Button>
-              </Form>
-            </Col>
-          </Row>
-        </Card.Body>
-      </Card>
+          {/* Action Buttons */}
+          <div className="form-actions">
+            <button
+              className="btn btn-primary btn-lg"
+              onClick={save}
+              disabled={saving}
+            >
+              <Save className="w-4 h-4" />
+              {saving ? "Saving..." : "Save Changes"}
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

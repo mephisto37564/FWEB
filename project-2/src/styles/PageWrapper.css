@@ -1,0 +1,12 @@
+.page-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+  min-height: calc(100vh - 80px);
+}
+
+@media (max-width: 768px) {
+  .page-wrapper {
+    padding: 1.5rem 1rem;
+  }
+}

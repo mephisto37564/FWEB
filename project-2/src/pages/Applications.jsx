@@ -3,6 +3,7 @@ import { useNavigate } from "react-router";
 import DataTable from "../components/DataTable";
 import DetailModal from "../components/DetailModal";
 import API_URL from "../config";
+import "../styles/Applications.css";
 
 export default function Applications() {
   const [apps, setApps] = useState([]);
@@ -13,11 +14,6 @@ export default function Applications() {
   let userId = localStorage.getItem("userId");
   const isAdmin = role === "admin";
 
-  // Debug log
-  console.log("Current user ID:", userId);
-  console.log("User role:", role);
-
-  // Redirect admin to dashboard
   useEffect(() => {
     if (isAdmin) {
       navigate("/dashboard");
@@ -34,19 +30,12 @@ export default function Applications() {
     try {
       const res = await fetch(`${API_URL}/applications`);
       const data = await res.json();
-      console.log("All applications from server:", data);
-      console.log("Filtering for userId:", userId);
       
-      // Filter to show only current user's applications
       const userApps = data.filter(app => {
-        // Handle both cases: userId is a string (direct ID) or an object with _id
         const appUserId = typeof app.userId === "string" ? app.userId : app.userId?._id;
-        const matches = appUserId === userId;
-        console.log(`App userId: ${appUserId}, Current userId: ${userId}, Match: ${matches}`);
-        return matches;
+        return appUserId === userId;
       });
       
-      console.log("Filtered applications for this user:", userApps);
       setApps(userApps);
     } catch (error) {
       console.error("Error fetching applications:", error);
@@ -56,18 +45,15 @@ export default function Applications() {
   const remove = async (item) => {
     if (window.confirm("Are you sure you want to unapply?")) {
       try {
-        // Delete the application
         await fetch(`${API_URL}/applications/${item._id}`, {
           method: "DELETE"
         });
 
-        // Don't recreate the listing - it already exists in the listings table
-        // Just remove from the user's applications
         setApps(prev => prev.filter(a => a._id !== item._id));
-        alert("Unapplied successfully!");
+        alert("✅ Unapplied successfully!");
       } catch (error) {
         console.error("Error unapplying:", error);
-        alert("Error unapplying");
+        alert("❌ Error unapplying");
       }
     }
   };
@@ -78,26 +64,35 @@ export default function Applications() {
   };
 
   if (isAdmin) {
-    return null; // Don't render anything, will redirect
+    return null;
   }
 
   return (
-    <>
-      <h2>Applications</h2>
+    <div className="applications-page">
+      <div className="applications-header">
+        <h1>My Applications</h1>
+        <p className="applications-subtitle">Track all your job applications</p>
+      </div>
 
-      <DataTable
-        columns={["Title", "Company", "Duration"]}
-        data={apps}
-        renderActions={(item) => (
-          <button 
-            onClick={() => remove(item)}
-            style={{ backgroundColor: "#dc3545", color: "white", border: "none", padding: "5px 10px", borderRadius: "4px", cursor: "pointer" }}
-          >
-            Unapply
-          </button>
-        )}
-        onRowClick={handleRowClick}
-      />
+      {apps.length === 0 ? (
+        <div className="empty-state">
+          <p>You haven't applied to any positions yet.</p>
+        </div>
+      ) : (
+        <DataTable
+          columns={["Title", "Company", "Duration"]}
+          data={apps}
+          renderActions={(item) => (
+            <button 
+              className="btn btn-sm btn-danger"
+              onClick={() => remove(item)}
+            >
+              Unapply
+            </button>
+          )}
+          onRowClick={handleRowClick}
+        />
+      )}
 
       <DetailModal
         show={showModal}
@@ -106,6 +101,6 @@ export default function Applications() {
         onUnapply={remove}
         type="application"
       />
-    </>
+    </div>
   );
 }

@@ -1,0 +1,20 @@
+.applications-page {
+  animation: fadeIn 0.3s ease;
+}
+
+.applications-header {
+  margin-bottom: 2rem;
+}
+
+.applications-header h1 {
+  font-size: 32px;
+  font-weight: 700;
+  color: #333;
+  margin: 0 0 0.5rem;
+}
+
+.applications-subtitle {
+  font-size: 16px;
+  color: #999;
+  margin: 0;
+}

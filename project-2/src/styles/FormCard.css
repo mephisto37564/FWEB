@@ -1,0 +1,85 @@
+.form-card {
+  max-width: 500px;
+  margin: 3rem auto;
+  padding: 2.5rem;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.form-card-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #333;
+  margin: 0 0 0.5rem;
+}
+
+.form-card-subtitle {
+  font-size: 14px;
+  color: #999;
+  margin: 0 0 1.5rem;
+}
+
+.form-label {
+  display: block;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 0.5rem;
+  font-size: 14px;
+}
+
+/* FIX: Make inputs have dark text on light background */
+.form-input {
+  width: 100%;
+  padding: 0.75rem !important;
+  border: 1px solid #e0e0e0 !important;
+  border-radius: 6px !important;
+  font-size: 14px !important;
+  background-color: #ffffff !important;
+  color: #333333 !important;
+  font-family: inherit !important;
+  transition: all 0.2s !important;
+}
+
+.form-input::placeholder {
+  color: #999999 !important;
+}
+
+.form-input:focus {
+  outline: none !important;
+  border-color: #667eea !important;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
+  background-color: #fafbfc !important;
+}
+
+/* Alternative version if above doesn't work - add to your main CSS file */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+select,
+textarea {
+  background-color: white !important;
+  color: #333 !important;
+  border: 1px solid #e0e0e0 !important;
+  border-radius: 6px !important;
+  padding: 0.75rem !important;
+  font-size: 14px !important;
+}
+
+input[type="text"]::placeholder,
+input[type="email"]::placeholder,
+input[type="password"]::placeholder {
+  color: #999 !important;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+select:focus,
+textarea:focus {
+  outline: none !important;
+  border-color: #667eea !important;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
+  background-color: #fafbfc !important;
+}

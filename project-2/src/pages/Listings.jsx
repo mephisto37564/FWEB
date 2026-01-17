@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from "react-router";
 import DataTable from "../components/DataTable";
 import DetailModal from "../components/DetailModal";
 import API_URL from "../config";
+import "../styles/Listings.css";
 
 export default function Listings() {
   const [listings, setListings] = useState([]);
@@ -12,14 +13,11 @@ export default function Listings() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const search = searchParams.get("search") || "";
+  const [filterType, setFilterType] = useState("all"); // all, job, company
   
   const role = localStorage.getItem("role");
   let userId = localStorage.getItem("userId");
   const isAdmin = role === "admin";
-
-  // Debug log
-  console.log("Current user ID:", userId);
-  console.log("User role:", role);
 
   useEffect(() => {
     fetchListings();
@@ -43,7 +41,6 @@ export default function Listings() {
       const res = await fetch(`${API_URL}/applications`);
       const data = await res.json();
       
-      // Get titles of jobs user has already applied for
       const userApps = data.filter(app => {
         const appUserId = typeof app.userId === "string" ? app.userId : app.userId?._id;
         return appUserId === userId;
@@ -51,7 +48,6 @@ export default function Listings() {
       
       const appliedTitles = new Set(userApps.map(app => app.title));
       setAppliedListings(appliedTitles);
-      console.log("User has applied for:", appliedTitles);
     } catch (error) {
       console.error("Error fetching user applications:", error);
     }
@@ -59,7 +55,6 @@ export default function Listings() {
 
   const apply = async (item) => {
     try {
-      // Create an application
       const appResponse = await fetch(`${API_URL}/applications`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -76,16 +71,12 @@ export default function Listings() {
         throw new Error("Failed to create application");
       }
 
-      const appData = await appResponse.json();
-      console.log("Application created:", appData);
-
-      // Add to applied listings set
       setAppliedListings(prev => new Set([...prev, item.title]));
       setShowModal(false);
-      alert("Application submitted successfully!");
+      alert("✅ Application submitted successfully!");
     } catch (error) {
       console.error("Error applying:", error);
-      alert("Error submitting application: " + error.message);
+      alert("❌ Error submitting application: " + error.message);
     }
   };
 
@@ -96,25 +87,41 @@ export default function Listings() {
           method: "DELETE"
         });
         setListings(prev => prev.filter(l => l._id !== item._id));
-        alert("Listing deleted successfully");
+        alert("✅ Listing deleted successfully");
       } catch (error) {
         console.error("Error deleting listing:", error);
-        alert("Error deleting listing");
+        alert("❌ Error deleting listing");
       }
     }
   };
 
-  // Filter listings: exclude applied ones for users, search by title
+  // Enhanced filtering logic - searches both title and company
   const filtered = listings.filter(l => {
-    const matchesSearch = l.title.toLowerCase().includes(search.toLowerCase());
+    const titleMatch = l.title.toLowerCase().includes(search.toLowerCase());
+    const companyMatch = l.company.toLowerCase().includes(search.toLowerCase());
     const notApplied = !appliedListings.has(l.title);
     
-    // Show all listings to admin, but hide applied ones for users
+    // Admin sees all matching listings
     if (isAdmin) {
-      return matchesSearch;
+      return titleMatch || companyMatch;
     }
-    return matchesSearch && notApplied;
+    
+    // Users only see non-applied listings
+    return notApplied && (titleMatch || companyMatch);
   });
+
+  // Separate results by type for better organization
+  const jobTitleMatches = filtered.filter(l =>
+    l.title.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const companyMatches = filtered.filter(l =>
+    l.company.toLowerCase().includes(search.toLowerCase()) &&
+    !l.title.toLowerCase().includes(search.toLowerCase())
+  );
+
+  // Display order: job titles first, then companies
+  const displayedListings = [...jobTitleMatches, ...companyMatches];
 
   const handleSearchChange = (value) => {
     if (value) {
@@ -133,8 +140,11 @@ export default function Listings() {
     {
       label: "Edit",
       render: (item) => (
-        <button onClick={() => navigate(`/listings/edit/${item._id}`)}>
-          Edit
+        <button 
+          className="btn btn-sm btn-primary"
+          onClick={() => navigate(`/listings/edit/${item._id}`)}
+        >
+          ✏️ Edit
         </button>
       )
     },
@@ -142,10 +152,10 @@ export default function Listings() {
       label: "Delete",
       render: (item) => (
         <button 
+          className="btn btn-sm btn-danger"
           onClick={() => deleteListing(item)}
-          style={{ backgroundColor: "#dc3545", color: "white", border: "none", padding: "5px 10px", borderRadius: "4px", cursor: "pointer" }}
         >
-          Delete
+          🗑️ Delete
         </button>
       )
     }
@@ -155,37 +165,93 @@ export default function Listings() {
     {
       label: "Apply",
       render: (item) => (
-        <button onClick={() => apply(item)}>
-          Apply
+        <button 
+          className="btn btn-sm btn-success"
+          onClick={() => apply(item)}
+        >
+          ✓ Apply
         </button>
       )
     }
   ];
 
   return (
-    <>
-      <h2>Listings</h2>
+    <div className="listings-page">
+      <div className="listings-header">
+        <div>
+          <h1>Job Opportunities</h1>
+          <p className="listings-subtitle">Find and apply to amazing internship positions</p>
+        </div>
+      </div>
 
-      <div style={toolbarStyle}>
-        <input
-          placeholder="Search..."
-          value={search}
-          onChange={(e) => handleSearchChange(e.target.value)}
-          style={{ maxWidth: "300px" }}
-        />
+      <div className="listings-toolbar">
+        <div className="search-wrapper">
+          <input
+            type="text"
+            placeholder="🔍 Search by job title, company..."
+            value={search}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            className="search-input"
+          />
+        </div>
         {isAdmin && (
-          <button onClick={() => navigate("/listings/add")}>
-            Add Listing
+          <button 
+            className="btn btn-primary btn-lg"
+            onClick={() => navigate("/listings/add")}
+          >
+            + Add Listing
           </button>
         )}
       </div>
 
-      <DataTable
-        columns={["Title", "Company", "Duration"]}
-        data={filtered}
-        actions={isAdmin ? adminActions : userActions}
-        onRowClick={handleRowClick}
-      />
+      {/* Search Results Summary */}
+      {search && (
+        <div className="search-summary">
+          <p>
+            Found <strong>{displayedListings.length}</strong> result{displayedListings.length !== 1 ? 's' : ''} for "<strong>{search}</strong>"
+          </p>
+          {jobTitleMatches.length > 0 && companyMatches.length > 0 && (
+            <p className="results-breakdown">
+              <span className="result-badge job-badge">{jobTitleMatches.length} Job Title{jobTitleMatches.length !== 1 ? 's' : ''}</span>
+              <span className="result-badge company-badge">{companyMatches.length} Company{companyMatches.length !== 1 ? 'ies' : ''}</span>
+            </p>
+          )}
+        </div>
+      )}
+
+      {displayedListings.length === 0 ? (
+        <div className="empty-state">
+          <p>No listings found. Try adjusting your search.</p>
+        </div>
+      ) : (
+        <>
+          {/* Job Title Matches Section */}
+          {jobTitleMatches.length > 0 && (
+            <div className="results-section">
+              {search && <h3 className="section-label">📋 Matching Job Titles</h3>}
+              <DataTable
+                columns={["Title", "Company", "Duration"]}
+                data={jobTitleMatches}
+                actions={isAdmin ? adminActions : userActions}
+                onRowClick={handleRowClick}
+              />
+            </div>
+          )}
+
+          {/* Company Matches Section */}
+          {companyMatches.length > 0 && (
+            <div className="results-section">
+              <h3 className="section-label">🏢 Matching Companies</h3>
+              <DataTable
+                columns={["Title", "Company", "Duration"]}
+                data={companyMatches}
+                actions={isAdmin ? adminActions : userActions}
+                onRowClick={handleRowClick}
+              />
+            </div>
+          )}
+        </>
+      )}
 
       <DetailModal
         show={showModal}
@@ -195,14 +261,6 @@ export default function Listings() {
         type="listing"
         isAdmin={isAdmin}
       />
-    </>
+    </div>
   );
 }
-
-const toolbarStyle = {
-  display: "flex",
-  justifyContent: "space-between",
-  alignItems: "center",
-  marginBottom: "1rem",
-  gap: "1rem"
-};

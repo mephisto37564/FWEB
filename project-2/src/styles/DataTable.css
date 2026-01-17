@@ -1,0 +1,51 @@
+.data-table-wrapper {
+  overflow-x: auto;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.data-table thead {
+  background-color: #f8f9fa;
+  border-bottom: 2px solid #ddd;
+}
+
+.data-table thead th {
+  padding: 1rem 0.75rem;
+  text-align: left;
+  font-weight: 600;
+  color: #333;
+  white-space: nowrap;
+}
+
+.data-table tbody td {
+  padding: 1rem 0.75rem;
+  border-bottom: 1px solid #eee;
+}
+
+.data-table tbody tr {
+  transition: background-color 0.2s ease;
+}
+
+.data-table tbody tr:hover {
+  background-color: #f9f9f9;
+}
+
+.data-table tbody tr.clickable {
+  cursor: pointer;
+}
+
+.data-table-empty {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #999;
+  background: white;
+  border-radius: 8px;
+  font-size: 16px;
+}
