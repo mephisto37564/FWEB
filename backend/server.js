@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import mongoose from "mongoose";
 import swaggerUi from "swagger-ui-express";
 import swaggerJsdoc from "swagger-jsdoc";
+import { MongoClient, GridFSBucket } from "mongodb";
 
 // Import routes
 import listingsRouter from "./routes/listings.js";
@@ -64,4 +65,8 @@ const PORT = process.env.PORT || 3000;
 // Start server
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
+});
+
+mongoose.connection.on("connected", () => {
+  console.log("GridFS ready for file uploads");
 });

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { User, Mail, FileText, Save, Upload, LogOut } from "lucide-react";
+import { User, Mail, FileText, Save, Upload, LogOut, Download, Trash2 } from "lucide-react";
 import API_URL from "../config";
 import "../styles/Profile.css";
 
@@ -22,7 +22,7 @@ const Profile = () => {
       .then(res => res.json())
       .then(data => {
         setUser(data);
-        setPreviewResume(data.resume);
+        setPreviewResume(data.resume?.filename || null);
         setLoading(false);
       })
       .catch(err => {
@@ -36,11 +36,17 @@ const Profile = () => {
     if (!file) return;
 
     // Validate file type
-    const validTypes = ['.pdf', '.doc', '.docx'];
-    const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
+    const validTypes = ['application/pdf', 'application/msword', 
+                       'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
     
-    if (!validTypes.includes(fileExtension)) {
+    if (!validTypes.includes(file.type)) {
       alert("❌ Please upload a valid resume file (PDF, DOC, DOCX)");
+      return;
+    }
+
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      alert("❌ File size must be less than 5MB");
       return;
     }
 
@@ -53,19 +59,20 @@ const Profile = () => {
 
     setSaving(true);
     try {
+      // Use FormData to handle file upload
       const formData = new FormData();
       formData.append('name', user.name);
       formData.append('email', user.email);
       
+      // Only append file if a new one was selected
       if (resumeFile) {
         formData.append('resume', resumeFile);
-      } else if (previewResume) {
-        formData.append('resume', previewResume);
       }
 
       const response = await fetch(`${API_URL}/users/${userId}`, {
         method: "PUT",
         body: formData
+        // DO NOT set Content-Type header - browser will set it automatically
       });
 
       if (!response.ok) throw new Error("Failed to update profile");
@@ -79,6 +86,49 @@ const Profile = () => {
       alert("❌ Error updating profile: " + error.message);
     } finally {
       setSaving(false);
+    }
+  };
+
+  const downloadResume = () => {
+    if (!user?.resume?.fileId) {
+      alert("No resume uploaded yet");
+      return;
+    }
+
+    // Download the resume
+    const link = document.createElement('a');
+    link.href = `${API_URL}/users/${userId}/resume`;
+    link.download = user.resume.filename || 'resume';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const removeResume = async () => {
+    if (window.confirm("Are you sure you want to remove your resume?")) {
+      try {
+        setSaving(true);
+        const formData = new FormData();
+        formData.append('name', user.name);
+        formData.append('email', user.email);
+
+        const response = await fetch(`${API_URL}/users/${userId}`, {
+          method: "PUT",
+          body: formData
+        });
+
+        if (!response.ok) throw new Error("Failed to remove resume");
+
+        const updatedUser = await response.json();
+        setUser(updatedUser);
+        setPreviewResume(null);
+        alert("✅ Resume removed successfully!");
+      } catch (error) {
+        console.error(error);
+        alert("❌ Error removing resume: " + error.message);
+      } finally {
+        setSaving(false);
+      }
     }
   };
 
@@ -194,23 +244,55 @@ const Profile = () => {
                 </label>
               </div>
 
-              {previewResume && (
-                <div className="resume-preview">
+              {/* Preview of new file being uploaded */}
+              {resumeFile && (
+                <div className="resume-preview resume-preview-new">
                   <FileText className="w-5 h-5" />
                   <div className="resume-info">
-                    <p className="resume-name">{previewResume}</p>
-                    <p className="resume-type">Document ready to upload</p>
+                    <p className="resume-name">{resumeFile.name}</p>
+                    <p className="resume-type">Ready to upload ({(resumeFile.size / 1024).toFixed(2)} KB)</p>
                   </div>
                   <button
                     type="button"
                     onClick={() => {
                       setResumeFile(null);
-                      setPreviewResume(null);
+                      setPreviewResume(user.resume?.filename || null);
                     }}
                     className="btn-remove"
                   >
                     ✕
                   </button>
+                </div>
+              )}
+
+              {/* Display current resume stored in DB */}
+              {user.resume?.filename && !resumeFile && (
+                <div className="resume-preview resume-preview-current">
+                  <FileText className="w-5 h-5" />
+                  <div className="resume-info">
+                    <p className="resume-name">{user.resume.filename}</p>
+                    <p className="resume-type">
+                      Uploaded {new Date(user.resume.uploadDate).toLocaleDateString()} ({(user.resume.size / 1024).toFixed(2)} KB)
+                    </p>
+                  </div>
+                  <div className="resume-actions">
+                    <button
+                      type="button"
+                      onClick={downloadResume}
+                      className="btn-resume-action btn-download"
+                      title="Download resume"
+                    >
+                      <Download className="w-4 h-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={removeResume}
+                      className="btn-resume-action btn-delete"
+                      title="Delete resume"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               )}
             </div>

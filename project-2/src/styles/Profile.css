@@ -104,6 +104,7 @@
   width: 100%;
   height: 100%;
   padding: 1rem;
+  color: white;
 }
 
 .avatar-info h2 {
@@ -172,19 +173,25 @@
 
 .form-input {
   width: 100%;
-  padding: 0.75rem 1rem;
-  border: 1px solid #e0e0e0;
-  border-radius: 6px;
-  font-size: 14px;
-  font-family: inherit;
-  transition: all 0.2s;
+  padding: 0.75rem 1rem !important;
+  border: 1px solid #e0e0e0 !important;
+  border-radius: 6px !important;
+  font-size: 14px !important;
+  font-family: inherit !important;
+  background-color: white !important;
+  color: #333 !important;
+  transition: all 0.2s !important;
+}
+
+.form-input::placeholder {
+  color: #999 !important;
 }
 
 .form-input:focus {
-  outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-  background-color: #fafbfc;
+  outline: none !important;
+  border-color: #667eea !important;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
+  background-color: #fafbfc !important;
 }
 
 /* Resume Upload */
@@ -249,13 +256,38 @@
   align-items: center;
   gap: 1rem;
   padding: 1rem;
-  background: #f0f4ff;
-  border: 1px solid #dde5ff;
   border-radius: 8px;
+  animation: slideIn 0.3s ease;
 }
 
-.resume-preview svg {
-  color: #667eea;
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.resume-preview-new {
+  background: #fff3cd;
+  border: 1px solid #ffeaa7;
+}
+
+.resume-preview-new svg {
+  color: #ff9800;
+  flex-shrink: 0;
+}
+
+.resume-preview-current {
+  background: #d1ecf1;
+  border: 1px solid #bee5eb;
+}
+
+.resume-preview-current svg {
+  color: #17a2b8;
   flex-shrink: 0;
 }
 
@@ -275,7 +307,52 @@
 .resume-type {
   margin: 0.25rem 0 0;
   font-size: 12px;
-  color: #999;
+  color: #666;
+}
+
+/* Resume Actions */
+.resume-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.btn-resume-action {
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: white;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  color: #666;
+}
+
+.btn-download {
+  border: 1px solid #17a2b8;
+  color: #17a2b8;
+}
+
+.btn-download:hover {
+  background: #17a2b8;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(23, 162, 184, 0.3);
+}
+
+.btn-delete {
+  border: 1px solid #dc3545;
+  color: #dc3545;
+}
+
+.btn-delete:hover {
+  background: #dc3545;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
 }
 
 .btn-remove {
@@ -356,5 +433,14 @@
 
   .form-actions .btn {
     width: 100%;
+  }
+
+  .resume-preview {
+    flex-wrap: wrap;
+  }
+
+  .resume-actions {
+    width: 100%;
+    justify-content: flex-end;
   }
 }
