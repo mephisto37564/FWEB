@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { User, Mail, FileText, Save, Upload, LogOut, Download, Trash2 } from "lucide-react";
 import API_URL from "../config";
-import "../styles/Profile.css";
+import "../styles/Pages.css";
 
 const Profile = () => {
   const [user, setUser] = useState(null);
@@ -35,7 +35,6 @@ const Profile = () => {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Validate file type
     const validTypes = ['application/pdf', 'application/msword', 
                        'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
     
@@ -44,7 +43,6 @@ const Profile = () => {
       return;
     }
 
-    // Validate file size (5MB max)
     if (file.size > 5 * 1024 * 1024) {
       alert("❌ File size must be less than 5MB");
       return;
@@ -59,12 +57,10 @@ const Profile = () => {
 
     setSaving(true);
     try {
-      // Use FormData to handle file upload
       const formData = new FormData();
       formData.append('name', user.name);
       formData.append('email', user.email);
       
-      // Only append file if a new one was selected
       if (resumeFile) {
         formData.append('resume', resumeFile);
       }
@@ -72,7 +68,6 @@ const Profile = () => {
       const response = await fetch(`${API_URL}/users/${userId}`, {
         method: "PUT",
         body: formData
-        // DO NOT set Content-Type header - browser will set it automatically
       });
 
       if (!response.ok) throw new Error("Failed to update profile");
@@ -95,7 +90,6 @@ const Profile = () => {
       return;
     }
 
-    // Download the resume
     const link = document.createElement('a');
     link.href = `${API_URL}/users/${userId}/resume`;
     link.download = user.resume.filename || 'resume';
@@ -162,7 +156,7 @@ const Profile = () => {
       {/* Header */}
       <div className="profile-header">
         <div>
-          <h1>Your Profile</h1>
+          <h1>👤 Your Profile</h1>
           <p className="profile-subtitle">Manage your account information and resume</p>
         </div>
         <button className="btn btn-danger" onClick={handleLogout}>
@@ -189,9 +183,11 @@ const Profile = () => {
         {/* Form Card */}
         <div className="profile-form-card">
           <div className="form-section">
-            <h3 className="section-title">Account Information</h3>
+            <h3 className="section-title">
+              <User className="w-5 h-5" />
+              Account Information
+            </h3>
 
-            {/* Full Name Field */}
             <div className="form-group">
               <label className="form-label">
                 <User className="w-4 h-4" />
@@ -206,7 +202,6 @@ const Profile = () => {
               />
             </div>
 
-            {/* Email Field */}
             <div className="form-group">
               <label className="form-label">
                 <Mail className="w-4 h-4" />
@@ -224,7 +219,10 @@ const Profile = () => {
 
           {/* Resume Section */}
           <div className="form-section">
-            <h3 className="section-title">Resume</h3>
+            <h3 className="section-title">
+              <FileText className="w-5 h-5" />
+              Resume
+            </h3>
 
             <div className="resume-upload">
               <div className="upload-area">

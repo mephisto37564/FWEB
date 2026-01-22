@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
-import DataTable from "../components/DataTable";
-import DetailModal from "../components/DetailModal";
+import { MapPin, Clock, Briefcase, Edit2, Trash2, CheckCircle } from "lucide-react";
 import API_URL from "../config";
-import "../styles/Listings.css";
+import "../styles/Pages.css";
 
 export default function Listings() {
   const [listings, setListings] = useState([]);
@@ -13,7 +12,6 @@ export default function Listings() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const search = searchParams.get("search") || "";
-  const [filterType, setFilterType] = useState("all"); // all, job, company
   
   const role = localStorage.getItem("role");
   let userId = localStorage.getItem("userId");
@@ -95,22 +93,19 @@ export default function Listings() {
     }
   };
 
-  // Enhanced filtering logic - searches both title and company
+  // Enhanced filtering logic
   const filtered = listings.filter(l => {
     const titleMatch = l.title.toLowerCase().includes(search.toLowerCase());
     const companyMatch = l.company.toLowerCase().includes(search.toLowerCase());
     const notApplied = !appliedListings.has(l.title);
     
-    // Admin sees all matching listings
     if (isAdmin) {
       return titleMatch || companyMatch;
     }
     
-    // Users only see non-applied listings
     return notApplied && (titleMatch || companyMatch);
   });
 
-  // Separate results by type for better organization
   const jobTitleMatches = filtered.filter(l =>
     l.title.toLowerCase().includes(search.toLowerCase())
   );
@@ -120,7 +115,6 @@ export default function Listings() {
     !l.title.toLowerCase().includes(search.toLowerCase())
   );
 
-  // Display order: job titles first, then companies
   const displayedListings = [...jobTitleMatches, ...companyMatches];
 
   const handleSearchChange = (value) => {
@@ -131,55 +125,16 @@ export default function Listings() {
     }
   };
 
-  const handleRowClick = (item) => {
+  const handleCardClick = (item) => {
     setSelectedListing(item);
     setShowModal(true);
   };
-
-  const adminActions = [
-    {
-      label: "Edit",
-      render: (item) => (
-        <button 
-          className="btn btn-sm btn-primary"
-          onClick={() => navigate(`/listings/edit/${item._id}`)}
-        >
-          ✏️ Edit
-        </button>
-      )
-    },
-    {
-      label: "Delete",
-      render: (item) => (
-        <button 
-          className="btn btn-sm btn-danger"
-          onClick={() => deleteListing(item)}
-        >
-          🗑️ Delete
-        </button>
-      )
-    }
-  ];
-
-  const userActions = [
-    {
-      label: "Apply",
-      render: (item) => (
-        <button 
-          className="btn btn-sm btn-success"
-          onClick={() => apply(item)}
-        >
-          ✓ Apply
-        </button>
-      )
-    }
-  ];
 
   return (
     <div className="listings-page">
       <div className="listings-header">
         <div>
-          <h1>Job Opportunities</h1>
+          <h1>💼 Job Opportunities</h1>
           <p className="listings-subtitle">Find and apply to amazing internship positions</p>
         </div>
       </div>
@@ -225,42 +180,232 @@ export default function Listings() {
         </div>
       ) : (
         <>
-          {/* Job Title Matches Section */}
+          {/* Job Title Matches */}
           {jobTitleMatches.length > 0 && (
             <div className="results-section">
               {search && <h3 className="section-label">📋 Matching Job Titles</h3>}
-              <DataTable
-                columns={["Title", "Company", "Duration"]}
-                data={jobTitleMatches}
-                actions={isAdmin ? adminActions : userActions}
-                onRowClick={handleRowClick}
-              />
+              <div className="listings-grid">
+                {jobTitleMatches.map(job => (
+                  <div 
+                    key={job._id}
+                    className="listing-card"
+                    onClick={() => handleCardClick(job)}
+                  >
+                    <div className="listing-card-header">
+                      <div className="listing-job-info">
+                        <h3>{job.title}</h3>
+                        <p>{job.company}</p>
+                      </div>
+                      <div className="listing-duration-badge">{job.duration}</div>
+                    </div>
+
+                    <div className="listing-card-body">
+                      {job.description && (
+                        <p className="listing-description">{job.description}</p>
+                      )}
+                      
+                      <div className="listing-meta">
+                        <div className="listing-meta-item">
+                          <Briefcase className="w-3 h-3" /> {job.company}
+                        </div>
+                        <div className="listing-meta-item">
+                          <Clock className="w-3 h-3" /> {job.duration}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="listing-card-footer">
+                      {appliedListings.has(job.title) ? (
+                        <div className="listing-applied-badge">
+                          <CheckCircle className="w-4 h-4" style={{ display: "inline", marginRight: "0.25rem" }} />
+                          Applied
+                        </div>
+                      ) : isAdmin ? (
+                        <>
+                          <button
+                            className="btn btn-sm btn-primary"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/listings/edit/${job._id}`);
+                            }}
+                          >
+                            <Edit2 className="w-4 h-4" />
+                            Edit
+                          </button>
+                          <button
+                            className="btn btn-sm btn-danger"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteListing(job);
+                            }}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            Delete
+                          </button>
+                        </>
+                      ) : (
+                        <button
+                          className="btn btn-sm btn-success"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            apply(job);
+                          }}
+                        >
+                          ✓ Apply Now
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
-          {/* Company Matches Section */}
+          {/* Company Matches */}
           {companyMatches.length > 0 && (
             <div className="results-section">
               <h3 className="section-label">🏢 Matching Companies</h3>
-              <DataTable
-                columns={["Title", "Company", "Duration"]}
-                data={companyMatches}
-                actions={isAdmin ? adminActions : userActions}
-                onRowClick={handleRowClick}
-              />
+              <div className="listings-grid">
+                {companyMatches.map(job => (
+                  <div 
+                    key={job._id}
+                    className="listing-card"
+                    onClick={() => handleCardClick(job)}
+                  >
+                    <div className="listing-card-header">
+                      <div className="listing-job-info">
+                        <h3>{job.title}</h3>
+                        <p>{job.company}</p>
+                      </div>
+                      <div className="listing-duration-badge">{job.duration}</div>
+                    </div>
+
+                    <div className="listing-card-body">
+                      {job.description && (
+                        <p className="listing-description">{job.description}</p>
+                      )}
+                      
+                      <div className="listing-meta">
+                        <div className="listing-meta-item">
+                          <Briefcase className="w-3 h-3" /> {job.company}
+                        </div>
+                        <div className="listing-meta-item">
+                          <Clock className="w-3 h-3" /> {job.duration}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="listing-card-footer">
+                      {appliedListings.has(job.title) ? (
+                        <div className="listing-applied-badge">
+                          <CheckCircle className="w-4 h-4" style={{ display: "inline", marginRight: "0.25rem" }} />
+                          Applied
+                        </div>
+                      ) : isAdmin ? (
+                        <>
+                          <button
+                            className="btn btn-sm btn-primary"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/listings/edit/${job._id}`);
+                            }}
+                          >
+                            <Edit2 className="w-4 h-4" />
+                            Edit
+                          </button>
+                          <button
+                            className="btn btn-sm btn-danger"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteListing(job);
+                            }}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            Delete
+                          </button>
+                        </>
+                      ) : (
+                        <button
+                          className="btn btn-sm btn-success"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            apply(job);
+                          }}
+                        >
+                          ✓ Apply Now
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </>
       )}
 
-      <DetailModal
-        show={showModal}
-        data={selectedListing}
-        onHide={() => setShowModal(false)}
-        onApply={apply}
-        type="listing"
-        isAdmin={isAdmin}
-      />
+      {/* Detail Modal */}
+      {showModal && selectedListing && (
+        <div className="modal-overlay" onClick={() => setShowModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>{selectedListing.title}</h2>
+              <button 
+                className="modal-close"
+                onClick={() => setShowModal(false)}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="modal-body">
+              <div className="detail-section">
+                <h3>Position Details</h3>
+                <div className="detail-grid">
+                  <div className="detail-item">
+                    <label>Title</label>
+                    <p>{selectedListing.title}</p>
+                  </div>
+                  <div className="detail-item">
+                    <label>Company</label>
+                    <p>{selectedListing.company}</p>
+                  </div>
+                  <div className="detail-item">
+                    <label>Duration</label>
+                    <p>{selectedListing.duration}</p>
+                  </div>
+                  <div className="detail-item">
+                    <label>Description</label>
+                    <p>{selectedListing.description}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="modal-footer">
+              {!appliedListings.has(selectedListing.title) && !isAdmin && (
+                <button
+                  className="btn btn-success"
+                  onClick={() => apply(selectedListing)}
+                >
+                  Apply Now
+                </button>
+              )}
+              {appliedListings.has(selectedListing.title) && (
+                <div className="listing-applied-badge" style={{ padding: "0.75rem 1.5rem" }}>
+                  ✓ You've already applied
+                </div>
+              )}
+              <button
+                className="btn btn-secondary"
+                onClick={() => setShowModal(false)}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
